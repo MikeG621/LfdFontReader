@@ -13,11 +13,13 @@
  * If a copy of the MPL (License.txt) was not distributed with this file,
  * you can obtain one at http://mozilla.org/MPL/2.0/.
  * 
- * VERSION: 1.0.3
+ * VERSION: 2.0
  */
 
 /*
  * CHANGELOG
+ * v2.0, 
+ * - [ADD] Added ability to import/export entire FONT resources
  * v1.0.3, 150127
  * - Published under MPL 2.0
  * v1.0.2, 090918
@@ -31,24 +33,25 @@
  * - Release
  */
 
+using Idmr.LfdReader;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Windows.Forms;
-using Idmr.LfdReader;
 
 namespace Idmr.LfdFontReader
 {
-	public partial class frmLFR : Form
+    public partial class frmLFR : Form
 	{
 		private int _index=0;
-		private Idmr.LfdReader.Font _fnt;
+		private LfdReader.Font _fnt;
 		LfdFile _lfd;
 
 		public frmLFR()
 		{
 			InitializeComponent();
-			Height = 248;
+			Height = 260;
 		}
 
 		private void cmdPrev_Click(object sender, EventArgs e)
@@ -95,9 +98,11 @@ namespace Idmr.LfdFontReader
 			_lfd = new LfdFile(opnLFD.FileName);
 			for (int i = 0; i < _lfd.Rmap.NumberOfHeaders; i++)
 				if (_lfd.Rmap.SubHeaders[i].Type == Resource.ResourceType.Font) lstFONT.Items.Add(_lfd.Rmap.SubHeaders[i].Name);
-			Text = "LFD Font Reader";
+			Text = "LFD Font Reader" + _lfd.FileName;
 			cmdNext.Enabled = false;
 			cmdPrev.Enabled = false;
+            cmdExport.Enabled = false;
+            cmdLoad.Enabled = false;
 			lblFilename.Text = opnLFD.FileName;
 		}
 		private void lstFONT_SelectedIndexChanged(object sender, EventArgs e)
@@ -109,10 +114,12 @@ namespace Idmr.LfdFontReader
 			for (int i = 0; i < _lfd.Rmap.NumberOfHeaders; i++)
 				if (_lfd.Rmap.SubHeaders[i].Name == lstFONT.Items[lstFONT.SelectedIndex].ToString())
 				{
-					_fnt = new Idmr.LfdReader.Font(_lfd.Rmap.FileName, _lfd.Rmap.SubHeaders[i].Offset);
+					_fnt = new LfdReader.Font(_lfd.Rmap.FileName, _lfd.Rmap.SubHeaders[i].Offset);
 					Text = "LFD Font Reader - " + _lfd.FileName + ":" + _lfd.Rmap.SubHeaders[i].Name;
 					cmdNext.Enabled = true;
 					cmdPrev.Enabled = true;
+                    cmdExport.Enabled = true;
+                    cmdLoad.Enabled = true;
 					_index = 0;
 					UpdateGlyph();
 					lblRules.Text = "Height must be same. Width must be " + _fnt.BitsPerScanLine.ToString() + "px or less. Auto-converts to black and white.";
@@ -128,25 +135,13 @@ namespace Idmr.LfdFontReader
 			Bitmap bm = new Bitmap(opnBitmap.FileName);
 			Bitmap image = new Bitmap(bm);	// force to Format32bppRGB
 			Bitmap glyph = new Bitmap(image.Width, image.Height, PixelFormat.Format1bppIndexed);
-			bm.Dispose();	// prevents file from remaining open
+			//bm.Dispose();	// prevents file from remaining open
 			lblImpHeight.Text = "Height: " + image.Height.ToString();
 			lblImpWidth.Text = "Width: " + image.Width.ToString();
 			if (image.Height == _fnt.Height && image.Width <= _fnt.BitsPerScanLine) cmdCopy.Enabled = true;
-			// convert to Format1bppIndexed
-			BitmapData bd32 = image.LockBits(new Rectangle(new Point(), image.Size), ImageLockMode.ReadWrite, image.PixelFormat);
-			byte[] pix32 = new byte[bd32.Stride*bd32.Height];
-			System.Runtime.InteropServices.Marshal.Copy(bd32.Scan0, pix32, 0, pix32.Length);	// image to byte[]
-			// setup glyph
-			BitmapData bd1 = glyph.LockBits(new Rectangle(new Point(), glyph.Size), ImageLockMode.ReadWrite, glyph.PixelFormat);
-			byte[] pix1 = new byte[bd1.Stride*bd1.Height];
-			for (int y=0;y<image.Height;y++)
-				for (int x=0, pos32=y*bd32.Stride, pos1=y*bd1.Stride;x<image.Width;x++)
-					if (pix32[pos32+x*4] != 0 || pix32[pos32+x*4+1] != 0 || pix32[pos32+x*4+2] != 0) pix1[pos1+x/8] |= (byte)(0x80 >> (x&7));
-			System.Runtime.InteropServices.Marshal.Copy(pix1, 0, bd1.Scan0, pix1.Length);	// byte[] to image
-			image.UnlockBits(bd32);
-			glyph.UnlockBits(bd1);
-			pctImport.BackgroundImage = glyph;
-		}
+            pctImport.BackgroundImage = Common.GraphicsFunctions.ConvertTo1bpp(image);
+            bm.Dispose();   // prevents file from remaining open
+        }
 		private void cmdCopy_Click(object sender, EventArgs e)
 		{
 			_fnt.Glyphs[_index] = (Bitmap)pctImport.BackgroundImage;
@@ -156,7 +151,66 @@ namespace Idmr.LfdFontReader
 		private void cmdSave_Click(object sender, EventArgs e)
 		{
 			_lfd.Write();
-			Text = "LFD Font Reader - " + lstFONT.Items[lstFONT.SelectedIndex].ToString();
+			Text = "LFD Font Reader - " + _lfd.FileName + ":" + lstFONT.Items[lstFONT.SelectedIndex].ToString();
 		}
-	}
+
+        private void cmdLoad_Click(object sender, EventArgs e)
+        {
+            opnFont.ShowDialog();
+        }
+
+        private void cmdExport_Click(object sender, EventArgs e)
+        {
+            savFont.FileName = Common.StringFunctions.GetFileName(_fnt.FileName, false) + "-" + _fnt.Name;
+            savFont.ShowDialog();
+        }
+
+        private void savFont_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            FileStream fs = null;
+            try
+            {
+                fs = File.OpenWrite(savFont.FileName);
+                BinaryWriter bw = new BinaryWriter(fs);
+                bw.Write("FONT".ToCharArray());
+                bw.Write(_fnt.Name.ToCharArray());
+                bw.Write((long)0);
+                fs.Position = Resource.LengthOffset;
+                bw.Write(_fnt.Length);
+                bw.Write(_fnt.RawData);
+                fs.SetLength(fs.Position);
+            }
+            catch (Exception x)
+            {
+                MessageBox.Show(x.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                fs.Close();
+            }
+        }
+
+        private void opnFont_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            FileStream fs = null;
+            try
+            {
+                fs = File.OpenRead(opnFont.FileName);
+                LfdReader.Font newFont = new LfdReader.Font(fs, 0);
+                if (newFont.Name != _fnt.Name) throw new InvalidDataException();
+            }
+            catch(InvalidDataException)
+            {
+                MessageBox.Show("FONT Resource names must match to ensure compatability and prevent accidental overwrites.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception x)
+            {
+                MessageBox.Show(x.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                fs.Close();
+            }
+        }
+    }
 }

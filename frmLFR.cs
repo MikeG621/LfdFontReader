@@ -20,6 +20,8 @@
  * CHANGELOG
  * v2.0, 
  * - [ADD] Added ability to import/export entire FONT resources
+ * - [UPD] Removed code replicating Common..ConvertTo1bpp
+ * - [UPD] Removed extra Bitmap from opnBitmap.OK
  * v1.0.3, 150127
  * - Published under MPL 2.0
  * v1.0.2, 090918
@@ -133,13 +135,13 @@ namespace Idmr.LfdFontReader
 		{
 			cmdCopy.Enabled = false;
 			Bitmap bm = new Bitmap(opnBitmap.FileName);
-			Bitmap image = new Bitmap(bm);	// force to Format32bppRGB
-			Bitmap glyph = new Bitmap(image.Width, image.Height, PixelFormat.Format1bppIndexed);
+			//Bitmap image = new Bitmap(bm);	// force to Format32bppRGB
+			Bitmap glyph = new Bitmap(bm.Width, bm.Height, PixelFormat.Format1bppIndexed);
 			//bm.Dispose();	// prevents file from remaining open
-			lblImpHeight.Text = "Height: " + image.Height.ToString();
-			lblImpWidth.Text = "Width: " + image.Width.ToString();
-			if (image.Height == _fnt.Height && image.Width <= _fnt.BitsPerScanLine) cmdCopy.Enabled = true;
-            pctImport.BackgroundImage = Common.GraphicsFunctions.ConvertTo1bpp(image);
+			lblImpHeight.Text = "Height: " + bm.Height.ToString();
+			lblImpWidth.Text = "Width: " + bm.Width.ToString();
+			if (bm.Height == _fnt.Height && bm.Width <= _fnt.BitsPerScanLine) cmdCopy.Enabled = true;
+            pctImport.BackgroundImage = Common.GraphicsFunctions.ConvertTo1bpp(bm);
             bm.Dispose();   // prevents file from remaining open
         }
 		private void cmdCopy_Click(object sender, EventArgs e)

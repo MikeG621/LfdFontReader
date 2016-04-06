@@ -287,9 +287,9 @@
             // pnlImages
             // 
             this.pnlImages.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.pnlImages.Location = new System.Drawing.Point(536, 21);
+            this.pnlImages.Location = new System.Drawing.Point(534, 21);
             this.pnlImages.Name = "pnlImages";
-            this.pnlImages.Size = new System.Drawing.Size(313, 160);
+            this.pnlImages.Size = new System.Drawing.Size(320, 160);
             this.pnlImages.TabIndex = 14;
             // 
             // vsbImages
@@ -303,7 +303,7 @@
             // cmdLoad
             // 
             this.cmdLoad.Enabled = false;
-            this.cmdLoad.Location = new System.Drawing.Point(536, 189);
+            this.cmdLoad.Location = new System.Drawing.Point(534, 189);
             this.cmdLoad.Name = "cmdLoad";
             this.cmdLoad.Size = new System.Drawing.Size(75, 23);
             this.cmdLoad.TabIndex = 16;
@@ -314,7 +314,7 @@
             // cmdExport
             // 
             this.cmdExport.Enabled = false;
-            this.cmdExport.Location = new System.Drawing.Point(617, 189);
+            this.cmdExport.Location = new System.Drawing.Point(615, 189);
             this.cmdExport.Name = "cmdExport";
             this.cmdExport.Size = new System.Drawing.Size(89, 23);
             this.cmdExport.TabIndex = 17;

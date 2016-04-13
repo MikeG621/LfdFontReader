@@ -1,6 +1,6 @@
 ﻿/*
  * LfdFontReader.exe, Editor for TIE95 FONT resources in LFD files
- * Copyright (C) 2009 Michael Gaisser (mjgaisser@gmail.com)
+ * Copyright (C) 2009-2016 Michael Gaisser (mjgaisser@gmail.com)
  * 
  * This software is free software; you can redistribute it and/or modify it
  * under the terms of the Mozilla Public License; either version 2.0 of the
@@ -19,9 +19,11 @@
 /*
  * CHANGELOG
  * v2.0, 
- * - [ADD] Added ability to import/export entire FONT resources
- * - [UPD] Removed code replicating Common..ConvertTo1bpp
- * - [UPD] Removed extra Bitmap from opnBitmap.OK
+ * [ADD] Added ability to import/export entire FONT resources
+ * [UPD] Removed code replicating ConvertTo1bpp
+ * [UPD] Removed extra Bitmap from opnBitmap.OK
+ * [UPD] Importing glyphs/FONTs now ties back to the LFD directly. You can edit all FONTs before saving
+ * [FIX] pctGlyph clears when switching LFDs
  * v1.0.3, 150127
  * - Published under MPL 2.0
  * v1.0.2, 090918
@@ -96,6 +98,7 @@ namespace Idmr.LfdFontReader
 		private void opnLFD_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
 		{
 			lstFONT.Items.Clear();
+			pctGlyph.BackgroundImage = null;
 			cmdImport.Enabled = false;
 			_lfd = new LfdFile(opnLFD.FileName);
 			for (int i = 0; i < _lfd.Rmap.NumberOfHeaders; i++)
@@ -116,15 +119,15 @@ namespace Idmr.LfdFontReader
 			for (int i = 0; i < _lfd.Rmap.NumberOfHeaders; i++)
 				if (_lfd.Rmap.SubHeaders[i].Name == lstFONT.Items[lstFONT.SelectedIndex].ToString())
 				{
-					_fnt = new LfdReader.Font(_lfd.Rmap.FileName, _lfd.Rmap.SubHeaders[i].Offset);
-					Text = "LFD Font Reader - " + _lfd.FileName + ":" + _lfd.Rmap.SubHeaders[i].Name;
+					_fnt = (LfdReader.Font)_lfd.Resources[i];
+					Text = "LFD Font Reader - " + _lfd.FileName + ":" + _fnt.Name;
 					cmdNext.Enabled = true;
 					cmdPrev.Enabled = true;
                     cmdExport.Enabled = true;
                     cmdLoad.Enabled = true;
 					_index = 0;
 					UpdateGlyph();
-					lblRules.Text = "Height must be same. Width must be " + _fnt.BitsPerScanLine.ToString() + "px or less. Auto-converts to black and white.";
+					lblRules.Text = "Height must be same. Width must be " + _fnt.BitsPerScanLine + "px or less. Auto-converts to black and white.";
 				}
 		}
 		private void cmdImport_Click(object sender, EventArgs e)
@@ -135,9 +138,7 @@ namespace Idmr.LfdFontReader
 		{
 			cmdCopy.Enabled = false;
 			Bitmap bm = new Bitmap(opnBitmap.FileName);
-			//Bitmap image = new Bitmap(bm);	// force to Format32bppRGB
 			Bitmap glyph = new Bitmap(bm.Width, bm.Height, PixelFormat.Format1bppIndexed);
-			//bm.Dispose();	// prevents file from remaining open
 			lblImpHeight.Text = "Height: " + bm.Height.ToString();
 			lblImpWidth.Text = "Width: " + bm.Width.ToString();
 			if (bm.Height == _fnt.Height && bm.Width <= _fnt.BitsPerScanLine) cmdCopy.Enabled = true;
@@ -200,6 +201,7 @@ namespace Idmr.LfdFontReader
                 fs = File.OpenRead(opnFont.FileName);
                 LfdReader.Font newFont = new LfdReader.Font(fs, 0);
                 if (newFont.Name != _fnt.Name) throw new InvalidDataException();
+                _fnt.DecodeResource(newFont.RawData, false);
             }
             catch(InvalidDataException)
             {

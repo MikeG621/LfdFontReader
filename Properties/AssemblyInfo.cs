@@ -1,9 +1,9 @@
 ﻿/*
  * LfdFontReader.exe, Editor for TIE95 FONT resources in LFD files
- * Copyright (C) 2009 Michael Gaisser (mjgaisser@gmail.com)
+ * Copyright (C) 2009-2016 Michael Gaisser (mjgaisser@gmail.com)
  * Licensed under the MPL v2.0 or later
  * 
- * VERSION: 1.0.3
+ * VERSION: 2.0
  */
 
 using System.Reflection;
@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Imperial Department of Military Research")]
 [assembly: AssemblyProduct("LfdFontReader")]
-[assembly: AssemblyCopyright("Copyright © 2009 Michael Gaisser")]
+[assembly: AssemblyCopyright("Copyright © 2009-2016 Michael Gaisser")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -27,6 +27,6 @@ using System.Reflection;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.3.*")]
-[assembly: AssemblyFileVersion("1.0.3.0")]
-[assembly: AssemblyInformationalVersion("1.0 release")]
+[assembly: AssemblyVersion("2.0.0.*")]
+[assembly: AssemblyFileVersion("2.0.0.0")]
+[assembly: AssemblyInformationalVersion("2.0 release candidate")]

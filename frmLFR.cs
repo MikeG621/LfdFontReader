@@ -19,6 +19,7 @@
 /*
  * CHANGELOG
  * v2.0, 
+ * [FIX] exception when trying to close fs if null
  * [ADD] Added ability to import/export entire FONT resources
  * [UPD] Removed code replicating ConvertTo1bpp
  * [UPD] Removed extra Bitmap from opnBitmap.OK
@@ -199,7 +200,7 @@ namespace Idmr.LfdFontReader
 			}
 			finally
 			{
-				fs.Close();
+				if (fs != null) fs.Close();
 			}
 		}
 		private void opnLFD_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
@@ -259,7 +260,7 @@ namespace Idmr.LfdFontReader
             }
             finally
             {
-                fs.Close();
+                if (fs != null) fs.Close();
             }
         }
 

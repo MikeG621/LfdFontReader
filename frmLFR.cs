@@ -18,7 +18,7 @@
 
 /*
  * CHANGELOG
- * v2.0, 
+ * v2.0, 160712
  * [FIX] exception when trying to close fs if null
  * [ADD] Added ability to import/export entire FONT resources
  * [UPD] Removed code replicating ConvertTo1bpp

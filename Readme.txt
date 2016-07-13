@@ -1,8 +1,8 @@
 ﻿LFD FONT Reader
 ===============================================================================
 Author: Michael Gaisser (mjgaisser@gmail.com)
-Version 1.0.3
-Date: 2015.01.27
+Version 2.0
+Date: 2016.07.12
 ===============================================================================
 
 This editor reads and writes the FONT resource types found in TIE95 LFD files.
@@ -15,6 +15,15 @@ single characters.
 ===================
 VERSION HISTORY
 
+v2.0 - 12 July 2016
+ - Fixed exception when closing nonexistent file
+ - Added ability to import/export entire FONT resources
+ - Removed useless code
+ - Importing glyphs/FONTs now modified LFD directly, allowing multiple FONTS to
+   be modifed before saving
+ - Selected glyph now clears when switching files
+ - Added full resource view
+ 
 v1.0.3 - 27 Jan 2015
  - Published under MPL 2.0
 
@@ -50,17 +59,21 @@ INSTRUCTIONS
 displayed next to it.  The only FONT resources in TIE95 can be found in
 EMPIRE.LFD, INSTALL.LFD and TITLE.LFD.
 - Select the FONT you wish to view in the list on the left.
-- Use the '<' and '>' buttons to browse the glyphs.
+- Use the '<' and '>' buttons to browse the glyphs, or click the desired glyph
+in the preview pan on the right.
 - The 'Import' button will let you choose the bitmap you wish to use to
 overwrite, sizing restrictions are enforced here.
 - The '<- Copy' button does just that, copies the imported image to the left.
+- The 'Load FONT' and 'Export FONT' buttons allow the saving of entire
+resources in one shot, providing a means to backup modifications and load the
+character set in one shot afterwards.
 - Changes are not permanent until the 'Save' button is clicked. This only has
-to be done once per FONT resource, not per character.
+to be done once per LFD file, not per character.
 
 As always, backup your original files first.
 
 ===============================================================================
-Copyright © 2009 Michael Gaisser
+Copyright © 2009-2016 Michael Gaisser
 This program and related files are licensed under the Mozilla Public License.
 See License.txt for the full text. If for some reason the license was not
 distributed with this program, you can obtain the full text of the license at
